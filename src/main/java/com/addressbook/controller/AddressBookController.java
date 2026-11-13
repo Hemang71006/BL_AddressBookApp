@@ -17,7 +17,7 @@ import java.util.List;
  * Date         : 03-11-2026
  *
  * Description:
- * Handles REST requests and delegates operations to the Service layer.
+ * Handles REST requests and delegates contact operations to the Service.
  */
 @RestController
 @RequestMapping("/addressbook")
@@ -39,16 +39,26 @@ public class AddressBookController {
     // GET - Retrieve all contacts
     @GetMapping
     public ResponseEntity<List<AddressBook>> getAllContacts() {
-        return ResponseEntity.ok(addressBookService.getAllContacts());
+
+        List<AddressBook> contacts = addressBookService.getAllContacts();
+
+        return ResponseEntity.ok(contacts);
     }
 
     // GET - Retrieve contact by ID
     @GetMapping("/{id}")
     public ResponseEntity<AddressBook> getContactById(@PathVariable int id) {
-        return ResponseEntity.ok(addressBookService.getContactById(id));
+
+        AddressBook contact = addressBookService.getContactById(id);
+
+        if (contact == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(contact);
     }
 
-    // POST - Create a contact
+    // POST - Create a new contact
     @PostMapping("/create")
     public ResponseEntity<AddressBook> createContact(
             @RequestBody AddressBookDTO addressBookDTO) {
@@ -58,7 +68,7 @@ public class AddressBookController {
         return ResponseEntity.status(HttpStatus.CREATED).body(contact);
     }
 
-    // PUT - Update a contact
+    // PUT - Update contact by ID
     @PutMapping("/update/{id}")
     public ResponseEntity<AddressBook> updateContact(
             @PathVariable int id,
@@ -66,12 +76,24 @@ public class AddressBookController {
 
         AddressBook contact = addressBookService.updateContact(id, addressBookDTO);
 
+        if (contact == null) {
+            return ResponseEntity.notFound().build();
+        }
+
         return ResponseEntity.ok(contact);
     }
 
-    // DELETE - Delete a contact
+    // DELETE - Delete contact by ID
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteContact(@PathVariable int id) {
-        return ResponseEntity.ok(addressBookService.deleteContact(id));
+
+        boolean deleted = addressBookService.deleteContact(id);
+
+        if (!deleted) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Contact not found with ID: " + id);
+        }
+
+        return ResponseEntity.ok("Contact deleted successfully with ID: " + id);
     }
 }

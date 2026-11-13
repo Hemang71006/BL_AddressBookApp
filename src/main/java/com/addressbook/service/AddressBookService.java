@@ -13,7 +13,7 @@ import java.util.List;
  * Date         : 03-11-2026
  *
  * Description:
- * Defines the business operations for Address Book contacts.
+ * Defines operations for managing Address Book contacts.
  */
 public interface AddressBookService {
 
@@ -25,5 +25,5 @@ public interface AddressBookService {
 
     AddressBook updateContact(int id, AddressBookDTO addressBookDTO);
 
-    String deleteContact(int id);
+    boolean deleteContact(int id);
 }

@@ -5,6 +5,7 @@ import com.addressbook.dto.AddressBookDTO;
 import com.addressbook.model.AddressBook;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,56 +15,70 @@ import java.util.List;
  * Date         : 03-11-2026
  *
  * Description:
- * Implements the business logic for Address Book operations.
+ * Manages Address Book contacts using an in-memory ArrayList.
  */
 @Service
 public class AddressBookServiceImpl implements AddressBookService {
 
+    // Stores all contacts in memory
+    private final List<AddressBook> addressBookList = new ArrayList<>();
+
+    // Generates unique IDs for contacts
+    private int nextId = 1;
+
     // GET - Retrieve all contacts
     @Override
     public List<AddressBook> getAllContacts() {
-        return List.of();
+        return new ArrayList<>(addressBookList);
     }
 
     // GET - Retrieve contact by ID
     @Override
     public AddressBook getContactById(int id) {
 
-        return new AddressBook(
-                id,
-                "Hemang",
-                "Sharma",
-                "9876543210"
-        );
+        return addressBookList.stream()
+                .filter(contact -> contact.getId() == id)
+                .findFirst()
+                .orElse(null);
     }
 
-    // POST - Create a contact
+    // POST - Create a new contact
     @Override
     public AddressBook createContact(AddressBookDTO addressBookDTO) {
 
-        return new AddressBook(
-                1,
+        AddressBook contact = new AddressBook(
+                nextId++,
                 addressBookDTO.getFirstName(),
                 addressBookDTO.getLastName(),
                 addressBookDTO.getPhoneNumber()
         );
+
+        addressBookList.add(contact);
+
+        return contact;
     }
 
-    // PUT - Update a contact
+    // PUT - Update an existing contact
     @Override
     public AddressBook updateContact(int id, AddressBookDTO addressBookDTO) {
 
-        return new AddressBook(
-                id,
-                addressBookDTO.getFirstName(),
-                addressBookDTO.getLastName(),
-                addressBookDTO.getPhoneNumber()
-        );
+        AddressBook existingContact = getContactById(id);
+
+        if (existingContact == null) {
+            return null;
+        }
+
+        existingContact.setFirstName(addressBookDTO.getFirstName());
+        existingContact.setLastName(addressBookDTO.getLastName());
+        existingContact.setPhoneNumber(addressBookDTO.getPhoneNumber());
+
+        return existingContact;
     }
 
-    // DELETE - Delete a contact
+    // DELETE - Delete contact by ID
     @Override
-    public String deleteContact(int id) {
-        return "Contact deleted with ID: " + id;
+    public boolean deleteContact(int id) {
+
+        return addressBookList.removeIf(contact -> contact.getId() == id);
     }
 }
