@@ -1,12 +1,21 @@
 
 package com.addressbook.controller;
 
+import com.addressbook.dto.AddressBookDTO;
+import com.addressbook.model.AddressBook;
+import com.addressbook.service.AddressBookService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -17,13 +26,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Date         : 03-11-2026
  *
  * Description:
- * Tests AddressBook REST APIs using MockMvc.
+ * Tests REST Controller endpoints using MockMvc and a mocked Service.
  */
 @WebMvcTest(AddressBookController.class)
 class AddressBookControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private AddressBookService addressBookService;
 
     // Test welcome API
     @Test
@@ -38,6 +50,8 @@ class AddressBookControllerTest {
     // Test GET all contacts
     @Test
     void shouldGetAllContacts() throws Exception {
+        when(addressBookService.getAllContacts()).thenReturn(List.of());
+
         mockMvc.perform(get("/addressbook"))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
@@ -46,6 +60,11 @@ class AddressBookControllerTest {
     // Test GET contact by ID
     @Test
     void shouldGetContactById() throws Exception {
+        when(addressBookService.getContactById(1))
+                .thenReturn(new AddressBook(
+                        1, "Hemang", "Sharma", "9876543210"
+                ));
+
         mockMvc.perform(get("/addressbook/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
@@ -54,9 +73,14 @@ class AddressBookControllerTest {
                 .andExpect(jsonPath("$.phoneNumber").value("9876543210"));
     }
 
-    // Test POST - Create contact using DTO
+    // Test POST create contact
     @Test
     void shouldCreateContact() throws Exception {
+        when(addressBookService.createContact(any(AddressBookDTO.class)))
+                .thenReturn(new AddressBook(
+                        1, "Rahul", "Sharma", "9876543210"
+                ));
+
         mockMvc.perform(post("/addressbook/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -73,9 +97,15 @@ class AddressBookControllerTest {
                 .andExpect(jsonPath("$.phoneNumber").value("9876543210"));
     }
 
-    // Test PUT - Update contact using DTO
+    // Test PUT update contact
     @Test
     void shouldUpdateContact() throws Exception {
+        when(addressBookService.updateContact(
+                eq(2), any(AddressBookDTO.class)))
+                .thenReturn(new AddressBook(
+                        2, "Amit", "Kumar", "9123456780"
+                ));
+
         mockMvc.perform(put("/addressbook/update/2")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -95,8 +125,13 @@ class AddressBookControllerTest {
     // Test DELETE contact
     @Test
     void shouldDeleteContact() throws Exception {
+        when(addressBookService.deleteContact(1))
+                .thenReturn("Contact deleted with ID: 1");
+
         mockMvc.perform(delete("/addressbook/delete/1"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Contact deleted with ID: 1"));
+                .andExpect(content().string(
+                        "Contact deleted with ID: 1"
+                ));
     }
 }
